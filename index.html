@@ -5,60 +5,64 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Takes – Акт I</title>
 <style>
-body{font-family:system-ui,monospace;background:#111;color:#0f0;margin:0;padding:8px;display:flex;flex-direction:column;height:100vh}
-#top{flex:1 1 90vh;display:flex;flex-direction:column}
-#out{flex:1;white-space:pre-wrap;overflow-y:scroll;border:1px solid #0f0;padding:6px}
-#hpBar{position:sticky;top:0;background:#111;border-bottom:1px solid #0f0;padding:4px;display:flex;align-items:center;gap:6px}
-.heart{font-size:20px}
-#bottom{flex:0 0 auto;display:flex;gap:6px;align-items:center}
-#in{flex:1;font-size:18px;background:#000;color:#0f0;border:1px solid #0f0;padding:4px}
-#sendBtn{font-size:20px;padding:8px 16px;height:48px;background:#000;color:#0f0;border:1px solid #0f0;cursor:pointer}
-button{background:#000;color:#0f0;border:1px solid #0f0;padding:6px;margin:2px;cursor:pointer}
-input[type=text],textarea,select{background:#000;color:#0f0;border:1px solid #0f0;padding:4px;margin:2px;width:100%}
-#fileIn{display:none}
-
-/* модальные окна */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center}
-.box{background:#111;border:2px solid #0f0;padding:12px;width:340px;max-height:70vh;overflow-y:auto}
-.invLine{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px;border:1px solid #0a0}
-.invIcon{font-size:22px}
-.statRow{display:flex;justify-content:space-between;margin-bottom:6px}
+:root{
+  --bg:#0d1117;
+  --panel:#161b22;
+  --border:#30363d;
+  --text:#c9d1d9;
+  --accent:#58a6ff;
+  --green:#3fb950;
+  --red:#f85149;
+}
+*{box-sizing:border-box;font-family:system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+body{margin:0;height:100vh;display:flex;background:var(--bg);color:var(--text)}
+#left{flex:1 1 60%;display:flex;flex-direction:column;padding:8px;gap:8px}
+#screen{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:15px;line-height:1.4;white-space:pre-wrap;overflow-y:auto;flex:1}
+#avatar{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+#avatar img{width:64px;height:64px;border-radius:50%;border:2px solid var(--accent)}
+#hpBar{display:flex;gap:12px;align-items:center;font-size:14px}
+.heart{font-size:18px}
+#inputRow{display:flex;gap:6px}
+#in{flex:1;padding:8px 10px;font-size:16px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:4px}
+#sendBtn{padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:4px;font-weight:600;cursor:pointer}
+#right{width:280px;background:var(--panel);border-left:1px solid var(--border);padding:12px;display:flex;flex-direction:column}
+#right h3{margin:0 0 8px;font-size:16px}
+#invGrid{display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+.invSlot{display:flex;align-items:center;gap:8px;padding:6px;border:1px solid var(--border);border-radius:4px}
+.invIcon{font-size:24px}
+.invSlot button{margin-left:auto;padding:4px 8px;font-size:12px;background:var(--accent);color:#fff;border:none;border-radius:3px;cursor:pointer}
+button:hover{filter:brightness(1.15)}
 </style>
 </head>
 <body>
-<div id="hpBar"><span id="hearts"></span> | Уровень <span id="lvl">1</span> | Опыт <span id="exp">0</span>/<span id="expNext">10</span></div>
-<div id="top">
-  <div id="out">Добро пожаловать в «Takes»!<br>Акт I: «Письма прошлого»<br>Чтобы посмотреться — наберите <b>осмотреться</b></div>
-</div>
-<div id="bottom">
-  <input id="in" placeholder="&gt; команда" autofocus>
-  <button id="sendBtn" onclick="send()">↵</button>
-  <button onclick="saveGame()">Сохранить</button>
-  <button onclick="loadGame()">Загрузить</button>
-  <input type="file" id="fileIn" accept=".txt,.json">
-</div>
-
-<!-- инвентарь -->
-<div id="invModal" class="modal" onclick="closeInv(event)">
-  <div class="box" onclick="event.stopPropagation()">
-    <h3>Инвентарь</h3>
-    <div id="invList">Пусто</div>
-    <button onclick="closeInv()">Закрыть</button>
+<div id="left">
+  <div id="screen">
+    <div id="avatar">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%2358a6ff'/%3E%3Ctext x='50' y='60' text-anchor='middle' font-size='50' fill='%23fff'%3E🧍%3C/text%3E%3C/svg%3E" alt="avatar">
+      <div>
+        <div id="hpBar"><span id="hearts"></span> | Ур. <span id="lvl">1</span> | Опыт <span id="exp">0</span>/<span id="expNext">10</span></div>
+        <small>Подсказка: осмотреться, идти &lt;направление&gt;, взять &lt;предмет&gt;, атака</small>
+      </div>
+    </div>
+    <div id="out">Добро пожаловать в «Takes»! Акт I: «Письма прошлого»&#10;Чтобы посмотреться — наберите <b>осмотреться</b></div>
+  </div>
+  <div id="inputRow">
+    <input id="in" placeholder="> команда" autofocus>
+    <button id="sendBtn" onclick="send()">↵</button>
+    <button onclick="saveGame()">💾</button>
+    <button onclick="loadGame()">📂</button>
+    <input type="file" id="fileIn" accept=".txt,.json" style="display:none">
   </div>
 </div>
 
-<!-- характеристики -->
-<div id="statModal" class="modal" onclick="closeStat(event)">
-  <div class="box" onclick="event.stopPropagation()">
-    <h3>Характеристики</h3>
-    <div id="statList"></div>
-    <button onclick="closeStat()">Закрыть</button>
-  </div>
+<div id="right">
+  <h3>Инвентарь</h3>
+  <div id="invGrid"></div>
 </div>
 
 <script>
 /******************************************************************
- *                        СЦЕНАРИЙ + СТАТЫ
+ *                        ДАННЫЕ
  ******************************************************************/
 const DEFAULT_WORLD={
   meta:{title:"Акт I: Письма прошлого",act:1},
@@ -67,68 +71,16 @@ const DEFAULT_WORLD={
   inv:[],
   flags:[],
   rooms:{
-    "квартира":{
-      name:"Старая квартира",
-      desc:"Пыльные окна, стук часов. На столе письмо и фотография. В коридор – на север.",
-      exits:{север:"коридор"},
-      items:["письмо","фотография"]
-    },
-    "коридор":{
-      name:"Коридор",
-      desc:"Тусклый свет. Юг – квартира; восток – чердак; запад – подвал; север – кладовка; вверх – чердачный люк (заперт).",
-      exits:{юг:"квартира",восток:"чердак",запад:"подвал",север:"кладовка"}
-    },
-    "чердак":{
-      name:"Запылившийся чердак",
-      desc:"Пахнет старой бумагой. На полу шкатулка.",
-      exits:{запад:"коридор"},
-      items:["шкатулка"]
-    },
-    "подвал":{
-      name:"Тёмный подвал",
-      desc:"Сырость. В углу стоит запертый чемодан.",
-      exits:{восток:"коридор"},
-      items:["чемодан"]
-    },
-    "кладовка":{
-      name:"Запертая кладовка",
-      desc:"Пахнет сыростью. На стене висит старый крючок.",
-      exits:{юг:"коридор"},
-      items:["крючок"]
-    },
-    /* новые локации */
-    "озеро":{
-      name:"Замёрзшее озеро",
-      desc:"По центру – провал. Под льдом движется тень… Монстр!",
-      exits:{юг:"лес"},
-      monster:{hp:100,maxHp:100,name:"Ледяной ужас",dmg:[5,15]}
-    },
-    "лес":{
-      name:"Тёмный лес",
-      desc:"Чуть слышно вороньё. Тропы на север (озеро) и восток (ров).",
-      exits:{север:"озеро",восток:"ров"}
-    },
-    "ров":{
-      name:"Заросший ров",
-      desc:"Высокие травы. На дне – кости и блеск металла.",
-      exits:{запад:"лес",юг:"пещера"},
-      items:["меч_рубли"],
-      monster:{hp:60,maxHp:60,name:"Травяной дух",dmg:[3,12]}
-    },
-    "пещера":{
-      name:"Сырая пещера",
-      desc:"Капает вода. В глубине – светящийся кристалл.",
-      exits:{север:"ров"},
-      items:["кристалл"],
-      randomEvent:{chance:1,msg:"С потолка сыпется песок – ловушка! -10 HP.",effect:"trap"}
-    },
-    "развалины":{
-      name:"Древние развалины",
-      desc:"Обрушившиеся стены. В центере – алтарь.",
-      exits:{восток:"коридор"},
-      items:["легендарный_клинок"],
-      monster:{hp:150,maxHp:150,name:"Каменный голем",dmg:[10,20]}
-    }
+    "квартира":{name:"Старая квартира",desc:"Пыльные окна, стук часов. На столе письмо и фотография. В коридор – на север.",exits:{север:"коридор"},items:["письмо","фотография"]},
+    "коридор":{name:"Коридор",desc:"Тусклый свет. Юг – квартира; восток – чердак; запад – подвал; север – кладовка.",exits:{юг:"квартира",восток:"чердак",запад:"подвал",север:"кладовка"}},
+    "чердак":{name:"Запылившийся чердак",desc:"Пахнет старой бумагой. На полу шкатулка.",exits:{запад:"коридор"},items:["шкатулка"]},
+    "подвал":{name:"Тёмный подвал",desc:"Сырость. В углу стоит запертый чемодан.",exits:{восток:"коридор"},items:["чемодан"]},
+    "кладовка":{name:"Запертая кладовка",desc:"Пахнет сыростью. На стене висит старый крючок.",exits:{юг:"коридор"},items:["крючок"]},
+    "озеро":{name:"Замёрзшее озеро",desc:"По центру – провал. Под льдом движется тень… Монстр!",exits:{юг:"лес"},monster:{hp:100,maxHp:100,name:"Ледяной ужас",dmg:[5,15],exp:30}},
+    "лес":{name:"Тёмный лес",desc:"Чуть слышно вороньё. Тропы на север (озеро) и восток (ров).",exits:{север:"озеро",восток:"ров"}},
+    "ров":{name:"Заросший ров",desc:"Высокие травы. На дне – кости и блеск металла.",exits:{запад:"лес",юг:"пещера"},items:["меч_рубли"],monster:{hp:60,maxHp:60,name:"Травяной дух",dmg:[3,12],exp:30}},
+    "пещера":{name:"Сырая пещера",desc:"Капает вода. В глубине – светящийся кристалл.",exits:{север:"ров"},items:["кристалл"],randomEvent:{chance:1,msg:"С потолка сыпется песок – ловушка! -10 HP.",effect:"trap"}},
+    "развалины":{name:"Древние развалины",desc:"Обрушившиеся стены. В центере – алтарь.",exits:{восток:"коридор"},items:["легендарный_клинок"],monster:{hp:150,maxHp:150,name:"Каменный голем",dmg:[10,20],exp:50}}
   },
   items:{
     "письмо":{name:"письмо",desc:"Короткое письмо: «Если ты это читаешь – значит, я не вернулся. Ищи ключ в шкатулке».",icon:"📝"},
@@ -155,23 +107,15 @@ const DEFAULT_WORLD={
     {chance:0.15,msg:"Вы наткнулись на паутину.",effect:"skip"},
     {chance:0.1,msg:"Под ногами хрустнуло стекло.",effect:"none"}
   ],
-  player:{
-    hp:30,maxHp:30,atk:5,def:0,
-    lvl:1,exp:0,expNext:10,
-    freePoints:0,
-    equipped:null
-  }
+  player:{hp:30,maxHp:30,atk:5,def:0,lvl:1,exp:0,expNext:10,freePoints:0,equipped:null}
 };
 
 let world=JSON.parse(localStorage.getItem('zworld_save_v1')||JSON.stringify(DEFAULT_WORLD));
 function save(){localStorage.setItem('zworld_save_v1',JSON.stringify(world))}
-function out(s){document.getElementById('out').innerHTML+=`<br>${s}`; scrollToEnd();}
-function scrollToEnd(){const o=document.getElementById('out'); o.scrollTop=o.scrollHeight;}
-
-/* ---------- обновление верхней панели ---------- */
+function out(s){const o=document.getElementById('out');o.textContent+='\n'+s;o.scrollTop=o.scrollHeight}
 function renderHP(){
   const p=world.player;
-  document.getElementById('hearts').innerHTML='❤️'.repeat(Math.ceil(p.hp/10))+'🖤'.repeat(Math.ceil((p.maxHp-p.hp)/10));
+  document.getElementById('hearts').textContent='❤️'.repeat(Math.ceil(p.hp/10))+'🖤'.repeat(Math.ceil((p.maxHp-p.hp)/10));
   document.getElementById('lvl').textContent=p.lvl;
   document.getElementById('exp').textContent=p.exp;
   document.getElementById('expNext').textContent=p.expNext;
@@ -181,143 +125,30 @@ function gainExp(am){
   p.exp+=am;
   while(p.exp>=p.expNext){
     p.exp-=p.expNext;
-    p.lvl++; p.freePoints++; p.expNext=10+p.lvl*5;
+    p.lvl++;p.freePoints++;p.expNext=10+p.lvl*5;
     out(`📈 Уровень повышен! +1 очко характеристик.`);
   }
-  renderHP(); save();
+  renderHP();save();
 }
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
 
 /* ---------- боевой цикл ---------- */
 let combatTurn=null;
 function startCombat(){
   const m=world.rooms[world.playerRoom].monster;
-  if(!m||m.hp<=0) return;
+  if(!m||m.hp<=0)return;
   out(`⚔️ ${m.name} нападает! Вводите "атака" чтобы бить.`);
   combatTurn=setInterval(()=>{
-    if(m.hp<=0){endCombat(true); return;}
+    if(m.hp<=0){endCombat(true);return;}
     const dmg=rand(m.dmg[0],m.dmg[1])-world.player.def;
     world.player.hp-=Math.max(0,dmg);
     out(`💥 ${m.name} бьёт вас на ${dmg} урона.`);
-    if(world.player.hp<=0){endCombat(false); return;}
-    renderHP(); save();
+    if(world.player.hp<=0){endCombat(false);return;}
+    renderHP();save();
   },3000);
 }
 function endCombat(win){
-  clearInterval(combatTurn); combatTurn=null;
-  const m=world.rooms[world.playerRoom].monster;
-  if(win){
-    out(`🎉 Вы победили ${m.name}! +30 опыта.`);
-    gainExp(30);
-    delete world.rooms[world.playerRoom].monster;
-  }else{
-    out(`💀 Вы погибли. Игра начнётся заново.`);
-    setTimeout(()=>{localStorage.removeItem('zworld_save_v1'); location.reload();},2000);
-  }
-  save();
-}
-function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
-
-/* ---------- команды ---------- */
-function send(){
-  const raw=document.getElementById('in').value.trim();
-  if(!raw)return;
-  out(`> ${raw}`);
-  document.getElementById('in').value='';
-  if(raw.startsWith('!edit')){
-    const wish=raw.slice(5).trim();
-    if(wish)applySimpleEdit(wish);
-    return;
-  }
-  parse(raw.toLowerCase());
-  save();
-}
-function parse(cmd){
-  const [a,...b]=cmd.split(' '); const arg=b.join(' ');
-  switch(a){
-    case 'осмотреться':look();break;
-    case 'идти':go(arg);break;
-    case 'взять':take(arg);break;
-    case 'инвентарь':openInv();break;
-    case 'использовать':use(arg);break;
-    case 'осмотреть':examine(arg);break;
-    case 'атака':playerAttack();break;
-    case 'характеристики':openStat();break;
-    default:out('Не понял: осмотреться, идти <направление>, взять <предмет>, инвентарь, использовать <предмет>, осмотреть <предмет>, атака, характеристики');
-  }
-}
-function look(){
-  const r=world.rooms[world.playerRoom];
-  out(`<b>${r.name}</b><br>${r.desc}`);
-  if(r.items&&r.items.length)out('Здесь: '+r.items.map(i=>world.items[i].name).join(', '));
-  if(r.npc&&r.npc.length)out('Рядом: '+r.npc.map(n=>world.npcs[n].name).join(', '));
-  if(r.exits&&Object.keys(r.exits).length)out('Выходы: '+Object.keys(r.exits).join(', '));
-  if(r.monster&&r.monster.hp>0)startCombat();
-  /* сюжетные случайные события внутри локации */
-  if(r.randomEvent&&Math.random()<r.randomEvent.chance){
-    const e=r.randomEvent;
-    out(e.msg);
-    if(e.effect==='trap'){world.player.hp-=10; renderHP();}
-    if(e.effect==='give'){world.inv.push(e.item); out('Получено: '+world.items[e.item].name);}
-    delete r.randomEvent;
-  }
-  checkTriggers();
-  tryRandomEvent();
-}
-function go(dir){
-  const r=world.rooms[world.playerRoom];
-  if(r.exits&&r.exits[dir]){
-    if(combatTurn){out('💀 Вы не можете убежать во время боя!'); return;}
-    world.playerRoom=r.exits[dir]; look();
-  }else out('Туда нельзя.');
-}
-function take(name){
-  const r=world.rooms[world.playerRoom];
-  if(!r.items){out('Нет такого.');return;}
-  const it=r.items.find(i=>world.items[i].name.toLowerCase()===name);
-  if(it){r.items=r.items.filter(x=>x!==it); world.inv.push(it); out('Взяли '+world.items[it].name); save();}
-  else out('Нет такого.');
-}
-function use(name){
-  const it=world.inv.find(i=>world.items[i].name.toLowerCase()===name);
-  if(!it){out('Нет.');return;}
-  /* экипировка оружия */
-  if(it==='дубина'||it==='меч_рубли'||it==='легендарный_клинок'){
-    if(world.player.equipped===it){out('Уже экипировано.'); return;}
-    world.player.equipped=it;
-    out(`⚔️ ${world.items[it].name} экипирован.`);
-    save(); return;
-  }
-  /* кристалл опыта */
-  if(it==='кристалл'){
-    world.inv=world.inv.filter(x=>x!=='кристалл');
-    gainExp(world.items.кристалл.exp||5);
-    return;
-  }
-  checkTriggers();
-}
-function examine(name){
-  let it=world.inv.find(i=>world.items[i].name.toLowerCase()===name);
-  if(!it){
-    const r=world.rooms[world.playerRoom];
-    if(r.items) it=r.items.find(i=>world.items[i].name.toLowerCase()===name);
-  }
-  if(it){const t=world.items[it]; out(`${t.icon||'📦'} ${t.name} – ${t.desc}`);}
-  else out('Нет такого.');
-}
-function playerAttack(){
-  const m=world.rooms[world.playerRoom].monster;
-  if(!m||m.hp<=0){out('Некого бить.'); return;}
-  let dmg=world.player.atk;
-  const w=world.player.equipped;
-  if(w) dmg+=world.items[w].atk||0;
-  dmg=rand(dmg-2,dmg+2);
-  m.hp-=Math.max(0,dmg);
-  out(`⚔️ Вы бьёте на ${dmg} урона. У монстра ${Math.max(0,m.hp)}/${m.maxHp} HP.`);
-  if(m.hp<=0)endCombat(true);
-  save();
-}
-function endCombat(win){
-  clearInterval(combatTurn); combatTurn=null;
+  clearInterval(combatTurn);combatTurn=null;
   const m=world.rooms[world.playerRoom].monster;
   if(win){
     out(`🎉 Вы победили ${m.name}! +${m.exp||30} опыта.`);
@@ -325,64 +156,108 @@ function endCombat(win){
     delete world.rooms[world.playerRoom].monster;
   }else{
     out(`💀 Вы погибли. Игра начнётся заново.`);
-    setTimeout(()=>{localStorage.removeItem('zworld_save_v1'); location.reload();},2000);
+    setTimeout(()=>{localStorage.removeItem('zworld_save_v1');location.reload()},2000);
   }
   save();
 }
-function gainExp(am){
-  const p=world.player;
-  p.exp+=am;
-  while(p.exp>=p.expNext){
-    p.exp-=p.expNext;
-    p.lvl++; p.freePoints++; p.expNext=10+p.lvl*5;
-    out(`📈 Уровень повышен! +1 очко характеристик.`);
-  }
-  renderHP(); save();
+
+/* ---------- команды ---------- */
+function send(){
+  const raw=document.getElementById('in').value.trim();
+  if(!raw)return;
+  out(`> ${raw}`);
+  document.getElementById('in').value='';
+  parse(raw.toLowerCase());
+  save();
 }
-function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function parse(cmd){
+  const [a,...b]=cmd.split(' ');const arg=b.join(' ');
+  switch(a){
+    case'осмотреться':look();break;
+    case'идти':go(arg);break;
+    case'взять':take(arg);break;
+    case'осмотреть':examine(arg);break;
+    case'атака':playerAttack();break;
+    default:out('Не понял: осмотреться, идти <направление>, взять <предмет>, осмотреть <предмет>, атака');
+  }
+}
+function look(){
+  const r=world.rooms[world.playerRoom];
+  out(`<b>${r.name}</b>\n${r.desc}`);
+  if(r.items&&r.items.length)out('Здесь: '+r.items.map(i=>world.items[i].name).join(', '));
+  if(r.exits&&Object.keys(r.exits).length)out('Выходы: '+Object.keys(r.exits).join(', '));
+  if(r.monster&&r.monster.hp>0)startCombat();
+  if(r.randomEvent&&Math.random()<r.randomEvent.chance){
+    const e=r.randomEvent;
+    out(e.msg);
+    if(e.effect==='trap'){world.player.hp-=10;renderHP();}
+    if(e.effect==='give'){world.inv.push(e.item);out('Получено: '+world.items[e.item].name);}
+    delete r.randomEvent;
+  }
+  checkTriggers();
+  renderInv();
+}
+function go(dir){
+  const r=world.rooms[world.playerRoom];
+  if(r.exits&&r.exits[dir]){
+    if(combatTurn){out('💀 Вы не можете убежать во время боя!');return;}
+    world.playerRoom=r.exits[dir];look();
+  }else out('Туда нельзя.');
+}
+function take(name){
+  const r=world.rooms[world.playerRoom];
+  if(!r.items){out('Нет такого.');return;}
+  const it=r.items.find(i=>world.items[i].name.toLowerCase()===name);
+  if(it){r.items=r.items.filter(x=>x!==it);world.inv.push(it);out('Взяли '+world.items[it].name);save();renderInv();}
+  else out('Нет такого.');
+}
+function examine(name){
+  let it=world.inv.find(i=>world.items[i].name.toLowerCase()===name);
+  if(!it){
+    const r=world.rooms[world.playerRoom];
+    if(r.items)it=r.items.find(i=>world.items[i].name.toLowerCase()===name);
+  }
+  if(it){const t=world.items[it];out(`${t.icon||'📦'} ${t.name} – ${t.desc}`);}
+  else out('Нет такого.');
+}
+function playerAttack(){
+  const m=world.rooms[world.playerRoom].monster;
+  if(!m||m.hp<=0){out('Некого бить.');return;}
+  let dmg=world.player.atk;
+  const w=world.player.equipped;
+  if(w)dmg+=world.items[w].atk||0;
+  dmg=rand(dmg-2,dmg+2);
+  m.hp-=Math.max(0,dmg);
+  out(`⚔️ Вы бьёте на ${dmg} урона. У монстра ${Math.max(0,m.hp)}/${m.maxHp} HP.`);
+  if(m.hp<=0){endCombat(true);return;}
+  save();
+}
 
 /* ---------- инвентарь ---------- */
-function openInv(){
-  const list=document.getElementById('invList');
-  if(!world.inv.length){list.innerHTML='Пусто';}
-  else{
-    list.innerHTML=world.inv.map(i=>{
-      const it=world.items[i];
-      let btns='';
-      if(it.atk) btns='<button onclick="use(\''+i+'\')">Экипировать</button>';
-      return `<div class="invLine"><span class="invIcon">${it.icon||'📦'}</span><div><b>${it.name}</b><br><small>${it.desc}</small>${btns?' '+btns:''}</div></div>`;
-    }).join('');
+function renderInv(){
+  const grid=document.getElementById('invGrid');
+  if(!world.inv.length){grid.innerHTML='<small>Пусто</small>';return;}
+  grid.innerHTML=world.inv.map(i=>{
+    const it=world.items[i];
+    const eq=world.player.equipped===i?'Снять':'Использовать';
+    return`<div class="invSlot">
+      <span class="invIcon">${it.icon||'📦'}</span>
+      <div><b>${it.name}</b><br><small>${it.desc}</small></div>
+      <button onclick="useItem('${i}')">${eq}</button>
+    </div>`;
+  }).join('');
+}
+function useItem(id){
+  const it=world.items[id];
+  if(it.atk){
+    if(world.player.equipped===id){world.player.equipped=null;out(`Сняли ${it.name}`);}
+    else{world.player.equipped=id;out(`Экипирован ${it.name}`);}
   }
-  document.getElementById('invModal').style.display='flex';
+  if(it.exp){world.inv=world.inv.filter(x=>x!==id);gainExp(it.exp);}
+  save();renderInv();
 }
-function closeInv(ev){
-  if(!ev||ev.target.classList.contains('modal')) document.getElementById('invModal').style.display='none';
-}
-/* ---------- характеристики ---------- */
-function openStat(){
-  const p=world.player;
-  const list=document.getElementById('statList');
-  list.innerHTML=`
-    <div class="statRow"><span>❤️ Жизни</span><span>${p.hp}/${p.maxHp}</span>${p.freePoints?'<button onclick="spend(\'maxHp\')">+5</button>':''}</div>
-    <div class="statRow"><span>⚔️ Атака</span><span>${p.atk}</span>${p.freePoints?'<button onclick="spend(\'atk\')">+1</button>':''}</div>
-    <div class="statRow"><span>🛡️ Защита</span><span>${p.def}</span>${p.freePoints?'<button onclick="spend(\'def\')">+1</button>':''}</div>
-    <div class="statRow"><span>💡 Очки</span><span>${p.freePoints}</span></div>
-  `;
-  document.getElementById('statModal').style.display='flex';
-}
-function closeStat(ev){
-  if(!ev||ev.target.classList.contains('modal')) document.getElementById('statModal').style.display='none';
-}
-function spend(stat){
-  const p=world.player;
-  if(p.freePoints<=0)return;
-  p.freePoints--;
-  if(stat==='maxHp'){p.maxHp+=5; p.hp+=5;}
-  if(stat==='atk')p.atk+=1;
-  if(stat==='def')p.def+=1;
-  renderHP(); openStat(); save();
-}
-/* ---------- сохранение / загрузка ---------- */
+
+/* ---------- сохранение ---------- */
 function saveGame(){
   const data=JSON.stringify(world,null,2);
   const blob=new Blob([data],{type:'text/plain'});
@@ -390,29 +265,57 @@ function saveGame(){
   const a=document.createElement('a');
   a.href=url;
   a.download='Takes_save_'+new Date().toISOString().slice(0,10)+'.txt';
-  document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
   URL.revokeObjectURL(url);
   out('Игра сохранена.');
 }
 function loadGame(){
-  document.getElementById('fileIn').click();
-}
-document.getElementById('fileIn').addEventListener('change',function(e){
-  const file=e.target.files[0]; if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      const data=JSON.parse(ev.target.result);
-      Object.assign(world,data);
-      save(); location.reload();
-    }catch(err){alert('Ошибка при чтении файла: '+err.message);}
+  const fi=document.createElement('input');
+  fi.type='file';fi.accept='.txt,.json';
+  fi.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{Object.assign(world,JSON.parse(ev.target.result));save();location.reload();}catch(err){alert('Ошибка: '+err.message);}
+    };
+    reader.readAsText(file);
   };
-  reader.readAsText(file);
-});
+  fi.click();
+}
+
+/* ---------- триггеры ---------- */
+function checkTriggers(){
+  if(combatTurn)return;
+  world.triggers.forEach(t=>{
+    if(testCond(t.cond))t.act.split(';').forEach(cmd=>runTriggerCmd(cmd));
+  });
+}
+function testCond(c){
+  let ok=true;
+  if(c.includes('has')){
+    const items=c.match(/has (\w+)/g);if(items){
+      items.forEach(i=>{if(!world.inv.includes(i.replace('has ','')))ok=false;});
+    }
+  }
+  if(c.includes('in')){
+    const room=c.match(/in (\w+)/);if(room&&world.playerRoom!==room[1])ok=false;
+  }
+  return ok;
+}
+function runTriggerCmd(cmd){
+  const[a,...b]=cmd.split(' ');const arg=b.join(' ');
+  switch(a){
+    case'msg':out(arg);break;
+    case'remove':{const r=world.rooms[world.playerRoom];if(r.items)r.items=r.items.filter(i=>i!==arg);break;}
+    case'give':if(!world.inv.includes(arg))world.inv.push(arg);break;
+    case'flag':world.flags.push(arg);break;
+    case'create':{const[dir,name]=arg.split(' ');world.rooms[world.playerRoom].exits[dir]=name;break;}
+  }
+  renderInv();
+}
+
 /* ---------- старт ---------- */
-renderHP(); look(); save();
+renderHP();look();save();
 document.getElementById('in').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
 </script>
 </body>
