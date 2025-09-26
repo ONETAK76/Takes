@@ -24,7 +24,7 @@ button{background:#000;color:#0f0;border:1px solid #0f0;padding:6px;margin:0}
   </div>
   <div id="descPanel">Текстовая РПГ с полной свободой действий и возможностью создания своего уникального сюжета by ONETAK</div>
 
-  <div id="out">Добро пожаловать в Takes!<br>Чтобы посмотреться — наберите <b>look</b></div>
+  <div id="out">Добро пожаловать в Take!<br>Чтобы посмотреться — наберите <b>look</b></div>
   <input id="in" placeholder="&gt; команда" autofocus>
   <br>
   <button onclick="send()">↵</button>
@@ -42,7 +42,6 @@ button{background:#000;color:#0f0;border:1px solid #0f0;padding:6px;margin:0}
 </div>
 
 <script>
-/* ---------- движок ---------- */
 const world = JSON.parse(localStorage.getItem('zworld')||`{
   "rooms":{"двор":{"name":"Заброшенный двор","desc":"Вы на дворе. Дверь на север.","exits":{"север":"чулан"},"items":[]},
            "чулан":{"name":"Тёмный чулан","desc":"Пахнет плесенью.","exits":{"юг":"двор"},"items":["факел"]}},
@@ -67,4 +66,75 @@ function parse(cmd){
   const [a,...b]=cmd.split(' '); const arg=b.join(' ');
   switch(a){
     case 'look':look();break;
-      
+    case 'go':go(arg);break;
+    case 'take':take(arg);break;
+    case 'inv':case 'inventory':inv();break;
+    case 'use':use(arg);break;
+    default:out('Не понял: look, go, take, inv, use');
+  }
+}
+function look(){
+  const r=world.rooms[world.playerRoom];
+  out(`<b>${r.name}</b><br>${r.desc}`);
+  if(r.items.length)out('Здесь: '+r.items.map(i=>world.items[i].name).join(', '));
+  if(Object.keys(r.exits).length)out('Выходы: '+Object.keys(r.exits).join(', '));
+  checkTriggers();
+}
+function go(dir){
+  const r=world.rooms[world.playerRoom];
+  if(r.exits[dir]){world.playerRoom=r.exits[dir];look();}
+  else out('Туда нельзя.');
+}
+function take(name){
+  const r=world.rooms[world.playerRoom];
+  const it=r.items.find(i=>world.items[i].name.toLowerCase()===name);
+  if(it){r.items=r.items.filter(x=>x!==it); world.inv.push(it); out('Взяли '+world.items[it].name);}
+  else out('Нет такого.');
+}
+function inv(){if(world.inv.length)out('У вас: '+world.inv.map(i=>world.items[i].name).join(', '));else out('Пусто.');}
+function use(name){if(!world.inv.find(i=>world.items[i].name.toLowerCase()===name)){out('Нет.');return;}checkTriggers();}
+function checkTriggers(){
+  world.triggers.forEach(t=>{
+    if(evalCond(t.cond)) t.act.split(';').forEach(act=>runAct(act.trim()));
+  });
+}
+function evalCond(c){
+  return c.split('and').every(p=>{
+    if(p.trim().startsWith('has'))return world.inv.includes(p.trim().slice(4).trim());
+    if(p.trim().startsWith('in'))return world.playerRoom===p.trim().slice(3).trim());
+    if(p.trim().startsWith('flag'))return world.flags.includes(p.trim().slice(5).trim());
+    return true;
+  });
+}
+function runAct(a){
+  if(a.startsWith('msg'))out(a.slice(4));
+  if(a.startsWith('flag'))world.flags.push(a.slice(5));
+  if(a.startsWith('create exit')){
+    const [,dir,targ]=a.split(' '); world.rooms[world.playerRoom].exits[dir]=targ;
+  }
+}
+function toggleEdit(){const d=document.getElementById('edit');d.style.display=d.style.display==='none'?'block':'none';}
+function quickRoom(){
+  const name=document.getElementById('rname').value.trim();
+  const desc=document.getElementById('rdesc').value.trim();
+  if(!name){alert('Введите название');return;}
+  const rid=world.playerRoom;
+  world.rooms[rid].name=name;
+  world.rooms[rid].desc=desc;
+  save(); out(`Комната «${name}» обновлена.`);
+}
+function exportWorld(){prompt('Сохраните этот JSON:',JSON.stringify(world));}
+function importWorld(){
+  const j=prompt('Вставьте JSON:');
+  if(!j)return;
+  try{Object.assign(world,JSON.parse(j));save();location.reload();}catch(e){alert('Ошибка');}
+}
+function toggleDesc(){
+  const p=document.getElementById('descPanel');
+  p.style.display=p.style.display==='none'?'block':'none';
+}
+look();
+document.getElementById('in').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+</script>
+</body>
+</html>
