@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Takes 2D</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,Arial,Helvetica,sans-serif}
+html,body{height:100vh;width:100vw;overflow:hidden;background:#111;color:#fff}
+#gameCanvas{background:#000;display:block}
+#ui{position:fixed;inset:0;pointer-events:none}
+#log{position:fixed;top:4px;left:4px;right:4px;max-height:25vh;background:rgba(0,0,0,.7);border-radius:4px;padding:4px;font-size:12px;overflow-y:auto;pointer-events:auto}
+#joy{position:fixed;bottom:8px;left:8px;width:120px;height:120px}
+#act{position:fixed;bottom:24px;right:24px;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid #fff;color:#fff;font-size:18px;font-weight:700;pointer-events:auto}
+#inv{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(0,0,0,.7);padding:4px;border-radius:4px;pointer-events:auto}
+.invSlot{width:40px;height:40px;border:1px solid #666;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(0,0,0,.4)}
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<div id="ui">
+  <div id="log">Коснитесь экрана</div>
+  <canvas id="joy" width="120" height="120"></canvas>
+  <button id="act">Действие</button>
+  <div id="inv"></div>
+</div>
+
+<script>
+/*****************************************************************
+ *                       ПРОСТЕЙШИЙ 2D-RPG
+ *****************************************************************/
+const TILE=48;                 // размер тайла (px)
+const canvas=document.getElementById('gameCanvas');
+const ctx=canvas.getContext('2d');
+const joyCanvas=document.getElementById('joy');
+const joyCtx=joyCanvas.getContext('2d');
+const logBox=document.getElementById('log');
+const invBox=document.getElementById('inv');
+
+// размеры канваса = экран
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+window.addEventListener('resize',resize);resize();
+
+/* ---------- игровые данные ---------- */
+const WORLD={
+  start:{x:3,y:3},
+  rooms:{
+    home:{name:"Дом",tiles:[
+      "##########",
+      "#........#",
+      "#..T....D#",
+      "#........#",
+      "##########"]},
+    lake:{name:"Озеро",tiles:[
+      "~~~~~~~~~~",
+      "~........~",
+      "~...M....~",
+      "~........~",
+      "~~~~~~~~~~"]},
+    forest:{name:"Лес",tiles:[
+      "TTTTTTTTTT",
+      "T........T",
+      "T...K....T",
+      "T........T",
+      "TTTTTTTTTT"]}
+  },
+  items:{
+    key:{icon:'🗝️',name:'Ключ',desc:'Открывает двери'},
+    sword:{icon:'⚔️',name:'Меч',desc:'+3 атаки',atk:3}
+  },
+  monsters:{
+    M:{hp:30,maxHp:30,name:'Ледяной ужас',dmg:[3,6],exp:20}
+  }
+};
+
+let room='home';
+let pl={...WORLD.start,hp:30,maxHp:30,atk:5,def:0,exp:0,expNext:10,lvl:1,inv:[],equipped:null};
+let monster=null;          // активный монстр в комнате
+let messages=[];           // лог событий
+let joyActive=false;
+let joyDir={x:0,y:0};
+
+/* ---------- утилиты ---------- */
+function log(m){messages.unshift(m);if(messages.length>5)messages.pop();logBox.innerHTML=messages.join('<br>');}
+function gainExp(am){
+  pl.exp+=am;
+  while(pl.exp>=pl.expNext){
+    pl.exp-=pl.expNext;
+    pl.lvl++;pl.atk++;pl.expNext=10+pl.lvl*5;
+    log('📈 Уровень повышен!');
+  }
+}
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+/* ---------- инвентарь ---------- */
+function renderInv(){
+  invBox.innerHTML=pl.inv.map((it,i)=>`<div class="invSlot" onclick="useItem(${i})">${WORLD.items[it].icon}</div>`).join('');
+}
+function useItem(idx){
+  const it=pl.inv[idx];
+  if(!it)return;
+  const item=WORLD.items[it];
+  if(item.atk){
+    if(pl.equipped===it){pl.equipped=null;log(`Сняли ${item.name}`);}
+    else{pl.equipped=it;log(`Экипирован ${item.name}`);}
+  }
+  if(item.exp){pl.inv.splice(idx,1);gainExp(item.exp);}
+  renderInv();
+}
+
+/* ---------- переход между комнатами ---------- */
+function enterRoom(r,x,y){
+  room=r;
+  const w=WORLD.rooms[room].tiles[0].length;
+  const h=WORLD.rooms[room].tiles.length;
+  pl.x=Math.max(1,Math.min(w-2,x||pl.x));
+  pl.y=Math.max(1,Math.min(h-2,y||pl.y));
+  // монстр
+  monster=null;
+  for(let row of WORLD.rooms[room].tiles){
+    if(row.includes('M')){
+      monster={...WORLD.monsters.M,hp:WORLD.monsters.M.maxHp};
+      break;
+    }
+  }
+  log(`Вход в ${WORLD.rooms[room].name}`);
+}
+
+/* ---------- передвижение ---------- */
+function tryMove(dx,dy){
+  const map=WORLD.rooms[room].tiles;
+  const nx=pl.x+dx,ny=pl.y+dy;
+  if(nx<0||ny<0||ny>=map.length||nx>=map[0].length)return;
+  const tile=map[ny][nx];
+  if(tile==='#'){log('Стена');return;}
+  if(tile==='~'){log('Холодная вода...');}
+  if(tile==='T'){log('Лесной путь');}
+  if(tile==='D'){enterRoom('lake',1,3);return;}
+  if(tile==='K'){if(!pl.inv.includes('key')){pl.inv.push('key');log('Найден ключ!');renderInv();}}
+  if(tile==='M'&&monster){
+    // атакуем
+    let dmg=pl.atk+(pl.equipped?WORLD.items[pl.equipped].atk||0:0);
+    dmg=rand(dmg-1,dmg+2);
+    monster.hp-=dmg;
+    log(`Вы бьёте на ${dmg} урона`);
+    if(monster.hp<=0){log(`Победа! +${monster.exp} опыта`);gainExp(monster.exp);monster=null;}
+    else{
+      // контр-удара
+      const md=rand(monster.dmg[0],monster.dmg[1]);
+      pl.hp-=md;
+      log(`${monster.name} бьёт на ${md}`);
+      if(pl.hp<=0){log('Вы погибли...');setTimeout(()=>{pl.hp=pl.maxHp;enterRoom('home',3,3);},1500);}
+    }
+    renderHP();return;
+  }
+  pl.x=nx;pl.y=ny;
+}
+
+/* ---------- контроллеры ---------- */
+const joyCenter={x:60,y:60,r:40};
+function drawJoy(){
+  joyCtx.clearRect(0,0,120,120);
+  joyCtx.strokeStyle='#fff';joyCtx.lineWidth=2;
+  joyCtx.beginPath();joyCtx.arc(joyCenter.x,joyCenter.y,joyCenter.r,0,Math.PI*2);joyCtx.stroke();
+  if(joyActive){
+    joyCtx.beginPath();joyCtx.arc(joyCenter.x+joyDir.x*joyCenter.r,joyCenter.y+joyDir.y*joyCenter.r,18,0,Math.PI*2);joyCtx.fillStyle='#fff';joyCtx.fill();
+  }
+}
+joyCanvas.addEventListener('touchstart',e=>{e.preventDefault();joyActive=true;updateJoy(e.touches[0]);});
+joyCanvas.addEventListener('touchmove',e=>{e.preventDefault();updateJoy(e.touches[0]);});
+joyCanvas.addEventListener('touchend',e=>{e.preventDefault();joyActive=false;joyDir={x:0,y:0};drawJoy();});
+window.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
+window.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+
+function updateJoy(t){
+  const rect=joyCanvas.getBoundingClientRect();
+  const x=t.clientX-rect.left,y=t.clientY-rect.top;
+  const dx=x-joyCenter.x,dy=y-joyCenter.y;
+  const d=Math.hypot(dx,dy);
+  if(d<joyCenter.r){joyDir={x:dx/joyCenter.r,y:dy/joyCenter.r};}
+  else{joyDir={x:dx/d,y:dy/d};}
+  drawJoy();
+}
+
+document.getElementById('act').addEventListener('click',()=>{
+  const map=WORLD.rooms[room].tiles;
+  const t=map[pl.y][pl.x];
+  if(t==='D')enterRoom('lake',1,3);
+  else if(t==='~')enterRoom('forest',3,1);
+  else if(t==='T')enterRoom('home',3,3);
+  else log('Нечего делать');
+});
+
+/* ---------- отрисовка ---------- */
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const map=WORLD.rooms[room].tiles;
+  const offX=canvas.width/2-pl.x*TILE;
+  const offY=canvas.height/2-pl.y*TILE;
+  for(let y=0;y<map.length;y++){
+    for(let x=0;x<map[y].length;x++){
+      const tx=map[y][x];
+      let color='#222';
+      if(tx==='#')color='#444';
+      if(tx==='~')color='#036';
+      if(tx==='T')color='#063';
+      ctx.fillStyle=color;
+      ctx.fillRect(offX+x*TILE,offY+y*TILE,TILE,TILE);
+      // символ тайла
+      ctx.fillStyle='#fff';
+      ctx.font=TILE*.6+'px sans-serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      if(tx==='D')ctx.fillText('🚪',offX+x*TILE+TILE/2,offY+y*TILE+TILE/2);
+      if(tx==='K')ctx.fillText('🗝️',offX+x*TILE+TILE/2,offY+y*TILE+TILE/2);
+      if(tx==='M')ctx.fillText('❄️',offX+x*TILE+TILE/2,offY+y*TILE+TILE/2);
+    }
+  }
+  // игрок
+  ctx.fillStyle='#ff0';
+  ctx.beginPath();
+  ctx.arc(offX+pl.x*TILE+TILE/2,offY+pl.y*TILE+TILE/2,TILE/3,0,Math.PI*2);
+  ctx.fill();
+  // HUD
+  ctx.fillStyle='#fff';
+  ctx.font='14px sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText(`❤️ ${pl.hp}/${pl.maxHp}  Ур.${pl.lvl}  Опыт ${pl.exp}/${pl.expNext}`,10,20);
+  drawJoy();
+  requestAnimationFrame(draw);
+}
+
+/* ---------- запуск ---------- */
+enterRoom('home',3,3);
+renderInv();
+draw();
+</script>
+</body>
+</html>
